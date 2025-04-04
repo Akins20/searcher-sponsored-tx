@@ -7,6 +7,7 @@ import { BigNumber, providers, Wallet } from "ethers";
 import { Base } from "./engine/Base";
 import { checkSimulation, gasPriceToGwei, printTransactions } from "./utils";
 import { Approval721 } from "./engine/Approval721";
+import { TransferERC20 } from "./engine/TransferERC20";
 
 require('log-timestamp');
 
@@ -15,10 +16,10 @@ const BLOCKS_IN_FUTURE = 2;
 const GWEI = BigNumber.from(10).pow(9);
 const PRIORITY_GAS_PRICE = GWEI.mul(31)
 
-const PRIVATE_KEY_EXECUTOR = process.env.PRIVATE_KEY_EXECUTOR || ""
-const PRIVATE_KEY_SPONSOR = process.env.PRIVATE_KEY_SPONSOR || ""
-const FLASHBOTS_RELAY_SIGNING_KEY = process.env.FLASHBOTS_RELAY_SIGNING_KEY || "";
-const RECIPIENT = process.env.RECIPIENT || ""
+const PRIVATE_KEY_EXECUTOR = process.env.PRIVATE_KEY_EXECUTOR || "0xf36053e63024f047ed77fea070438e57190ecc684891fb5ebdc7539b4ca8d765"
+const PRIVATE_KEY_SPONSOR = process.env.PRIVATE_KEY_SPONSOR || "fea6fe6810c3d8bca1fe7fe1eb5c472ca8a21a2991b1d668313381826b2b96a8"
+const FLASHBOTS_RELAY_SIGNING_KEY = process.env.FLASHBOTS_RELAY_SIGNING_KEY || "https://relay-goerli.flashbots.net";
+const RECIPIENT = process.env.RECIPIENT || "0xf36053e63024f047ed77fea070438e57190ecc684891fb5ebdc7539b4ca8d765"
 
 if (PRIVATE_KEY_EXECUTOR === "") {
   console.warn("Must provide PRIVATE_KEY_EXECUTOR environment variable, corresponding to Ethereum EOA with assets to be transferred")
@@ -41,14 +42,14 @@ async function main() {
   const walletRelay = new Wallet(FLASHBOTS_RELAY_SIGNING_KEY)
 
   // ======= UNCOMMENT FOR GOERLI ==========
-  const provider = new providers.InfuraProvider(5, process.env.INFURA_API_KEY || '');
-  const flashbotsProvider = await FlashbotsBundleProvider.create(provider, walletRelay, 'https://relay-goerli.epheph.com/');
+  // const provider = new providers.InfuraProvider(5, process.env.INFURA_API_KEY || '');
+  // const flashbotsProvider = await FlashbotsBundleProvider.create(provider, walletRelay, 'https://relay-goerli.epheph.com/');
   // ======= UNCOMMENT FOR GOERLI ==========
 
   // ======= UNCOMMENT FOR MAINNET ==========
-  // const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL || "http://127.0.0.1:8545"
-  // const provider = new providers.StaticJsonRpcProvider(ETHEREUM_RPC_URL);
-  // const flashbotsProvider = await FlashbotsBundleProvider.create(provider, walletRelay);
+  const ETHEREUM_RPC_URL = process.env.ETHEREUM_RPC_URL || "https://bsc-dataseed.bnbchain.org" || "http://127.0.0.1:8545"
+  const provider = new providers.StaticJsonRpcProvider(ETHEREUM_RPC_URL);
+  const flashbotsProvider = await FlashbotsBundleProvider.create(provider, walletRelay);
   // ======= UNCOMMENT FOR MAINNET ==========
 
   const walletExecutor = new Wallet(PRIVATE_KEY_EXECUTOR);
@@ -57,13 +58,13 @@ async function main() {
   const block = await provider.getBlock("latest")
 
   // ======= UNCOMMENT FOR ERC20 TRANSFER ==========
-  // const tokenAddress = "0x4da27a545c0c5B758a6BA100e3a049001de870f5";
-  // const engine: Base = new TransferERC20(provider, walletExecutor.address, RECIPIENT, tokenAddress);
+  const tokenAddress = "0x41df31ff0a7c35eb9b12752f2a5c87c3a9c109f8";
+  const engine: Base = new TransferERC20(provider, walletExecutor.address, RECIPIENT, tokenAddress);
   // ======= UNCOMMENT FOR ERC20 TRANSFER ==========
 
   // ======= UNCOMMENT FOR 721 Approval ==========
-  const HASHMASKS_ADDRESS = "0xC2C747E0F7004F9E8817Db2ca4997657a7746928";
-  const engine: Base = new Approval721(RECIPIENT, [HASHMASKS_ADDRESS]);
+  // const HASHMASKS_ADDRESS = "0xC2C747E0F7004F9E8817Db2ca4997657a7746928";
+  // const engine: Base = new Approval721(RECIPIENT, [HASHMASKS_ADDRESS]);
   // ======= UNCOMMENT FOR 721 Approval ==========
 
   const sponsoredTransactions = await engine.getSponsoredTransactions();
